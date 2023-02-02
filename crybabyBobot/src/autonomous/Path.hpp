@@ -8,7 +8,7 @@
 
 class Path {
     public:
-        Vector2* pPoints;
+        Vector2* pPoints;//primitive points are points that are given to use
         unsigned short n;
 
         Vector2* nPoints;
@@ -37,33 +37,33 @@ class Path {
         Vector2 lookaheadPoint;
 
         void createPath() {
-            unsigned short pNum = 0;
-            unsigned short pNumL[n-1];
+            unsigned short pNum = 0;//# of points that we want
+            unsigned short pNumL[n-1];//number of points in a line
             lines = (Line*)malloc(sizeof(Line)*(n-1));
-            for (unsigned short i = 0; i < n-1; i++) {
+            for (unsigned short i = 0; i < n-1; i++) {//find the distance between each line and devide the points by the spacing that we want
                 lines[i] = Line(pPoints[i], pPoints[i+1]);
                 pNumL[i] = lines[i].disBtwnCords/spacing;
                 pNum += pNumL[i];
             }
 
-            nPoints = (Vector2*)malloc(sizeof(Vector2)*(pNum+1));
+            nPoints = (Vector2*)malloc(sizeof(Vector2)*(pNum+1));//new points
             pNum = 0;
 
             for (unsigned short i = 0; i < n-1; i++) {
-                for (unsigned short v = 0; v < pNumL[i]; v++) {
+                for (unsigned short v = 0; v < pNumL[i]; v++) {//v is a ration in which we know how much to move in a certain amount.
                     //Point injection given spacing
-                    nPoints[pNum+v] = lines[i].ratioToCoordinate(((double)v)/pNumL[i]);
+                    nPoints[pNum+v] = lines[i].ratioToCoordinate(((double)v)/pNumL[i]);//basically creates more points in a line so that your spacing is correct
                 }
                 pNum += pNumL[i];
             }
 
-            nPoints[pNum] = lines[n-2].endPos;
+            nPoints[pNum] = lines[n-2].endPos;//creates the path
             n=pNum;
                 
-            nPoints = smoother(nPoints, 1, 1, 100);
+            nPoints = smoother(nPoints, 1, 1, 100);//idk smooths stuff
             
-            free(lines);
-            lines = (Line*)malloc(sizeof(Line)*(n-1));
+            free(lines);//delete lines
+            lines = (Line*)malloc(sizeof(Line)*(n-1));//remake the lines
             distAtPoint = new double[n];
             headingAtPoint = new double[n];
             radius = new double[n-3];
@@ -79,6 +79,7 @@ class Path {
             headingAtPoint[0] = 0;
 
             for (unsigned short i = 0; i < n-1; i++) {
+                 //basically figures out at what velocity you should be at when reaching a certain point
                 lines[i] = Line(nPoints[i], nPoints[i+1]);
                 distAtPoint[i+1] = distAtPoint[i] + lines[i].disBtwnCords;
                 headingAtPoint[i+1] = headingAtPoint[i] + nPoints[i].headingTo(headingAtPoint[i], nPoints[i+1]);
@@ -95,20 +96,20 @@ class Path {
                         y3*y3) / (x3*k2 - y3 + y2 - x2*k2);
                     a = k1 - k2*b;
 
-                    radius[i] = nPoints[i].distanceTo(Vector2(a,b));
+                    radius[i] = nPoints[i].distanceTo(Vector2(a,b));//gets the radius of the smallest circles between two points
                     curvature[i]=1/radius[i];
                     
-                    oVel[i]=fmin(maxRelVel, k/curvature[i]);
+                    oVel[i]=fmin(maxRelVel, k/curvature[i]);//old velocity
                 }
             }
             for (unsigned short i = 0; i < n-4; i++) {
                 nVel[i]=fmin(oVel[i], sqrt(oVel[i+1]*oVel[i+1] + 2*accel*lines[i].disBtwnCords));
             }
-            nVel[n-4]=oVel[n-4];
+            nVel[n-4]=oVel[n-4];//new velocity
             lookaheadPoint = nPoints[0];
         }
 
-        Vector2* smoother(Vector2* path, double a, double b, double tolerance) {
+        Vector2* smoother(Vector2* path, double a, double b, double tolerance) {//idk, works doe
             sPoints = path;
             double change = tolerance;
             while(change >= tolerance) {
@@ -132,7 +133,9 @@ class Path {
             return rateOutput;
         }
 
-        void findTargetPoint(Vector2 pos) {
+        void findTargetPoint(Vector2 pos) {//finds the target point given ur position, target point goes in, finds the radius that we got in create path, 
+            //look towards the nearest point, if not in the radius, we look at the points that are closest to us. Basically if you find a point that is closer to you, go for it
+            //if the robot get pushed away, the robot will try to get back on the path
             for (;currentSegment<n-1;currentSegment++) {
                 Vector2 f = lines[currentSegment].startPos - pos;
                 Vector2 d = lines[currentSegment].dvec;
@@ -178,7 +181,7 @@ class Path {
         }
 
 
-        double* findRobotVelocities(Vector2 pos, double heading) {
+        double* findRobotVelocities(Vector2 pos, double heading) {//finds the target points, calculates stuff, and knows at what velocity the right and left should be
             findTargetPoint(pos);
             Vector2 dvec = lookaheadPoint-pos;
             double curvature = (dvec.x * 2) / (dvec.x * dvec.x + dvec.y * dvec.y);

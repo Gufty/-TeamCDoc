@@ -6,7 +6,7 @@
 using namespace pros;
 using namespace Constants;
 
-class Indexer {
+class Indexer {//indexer is at 0 pos, when we want to move we will move certain motor values and move back to normal
     private:
         Motor index = Motor(index_p);
     public:

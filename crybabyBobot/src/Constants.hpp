@@ -28,13 +28,13 @@ namespace Constants {
     static constexpr double unitsPerRevolution = 642.8571429; // Motor units per revolution for drive wheels (900 * 5/7)
     static const double inchesPerTick = wheelDiameter*pi/unitsPerRevolution; // The inches per tick for the drive encoders
 
-    static constexpr float maxActVel = 54.0f;
+    static constexpr float maxActVel = 54.0f;//prob not this, amount of inches it can move per second
     static const double maxRelVel = maxActVel/inchesPerTick;
     
     static constexpr double accel = 1;
     static constexpr double spacing = 12;
 
-    static inline double headingRestrict(double heading) {
+    static inline double headingRestrict(double heading) {//greater than 2pi, -2pi
         if (heading <= 0) heading += pi*2;
         heading = fmod(std::abs(heading),pi*2);
         return heading;

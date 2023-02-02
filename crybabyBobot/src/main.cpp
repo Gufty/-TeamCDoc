@@ -22,7 +22,7 @@ Odometry odom = Odometry(&dt, &odometryInfo);
 
 bool arcade;
 
-inline lv_res_t toggleMode(lv_obj_t * btn)
+inline lv_res_t toggleMode(lv_obj_t * btn)//press the button on the screen to change to the different drives.
 {
     if (arcade) {
 	dt.teleMove = [=]{dt.tankDrive(master.get_analog(E_CONTROLLER_ANALOG_LEFT_Y),master.get_analog(E_CONTROLLER_ANALOG_RIGHT_Y));};
@@ -38,7 +38,7 @@ inline lv_res_t toggleMode(lv_obj_t * btn)
 
 bool rightSide;
 
-inline lv_res_t toggleSide(lv_obj_t * btn) {
+inline lv_res_t toggleSide(lv_obj_t * btn) {//changes to wheter the robot is on the left or the right
 	rightSide = !rightSide;
 
 	btnSetToggled(btn, rightSide);
@@ -52,12 +52,14 @@ void initialize() {
 	lv_style_t* modeBtnSty = createBtnStyle(&lv_style_plain, LV_COLOR_MAKE(0, 100, 0), LV_COLOR_MAKE(0, 125, 0), LV_COLOR_MAKE(0, 150, 150), LV_COLOR_MAKE(0, 150, 175), LV_COLOR_MAKE(255, 255, 255));
 	setBtnStyle(modeBtnSty, modeButton);
 	lv_btn_set_action(modeButton, LV_BTN_ACTION_CLICK, toggleMode);
-
+	//area that the button is used
+	
 	lv_obj_t* teamButton = createBtn(lv_scr_act(), 200, 50,  150,  20, "Toggle Side");
 	lv_style_t* teamBtnSty = createBtnStyle(&lv_style_plain, LV_COLOR_MAKE(0, 0, 255), LV_COLOR_MAKE(0, 0, 125), LV_COLOR_MAKE(255, 0, 0), LV_COLOR_MAKE(125, 0, 0), LV_COLOR_MAKE(255, 255, 255));
 	setBtnStyle(teamBtnSty, teamButton);
 	lv_btn_set_action(teamButton, LV_BTN_ACTION_CLICK, toggleSide);
-
+	//actually side button, which changes the where the robot knows where it is at which allows it to follow the correct path based on where it is at.
+	
 	//lv_style_t* textSty = createLabelSty(&lv_style_plain, LV_COLOR_MAKE(0,0,0), LV_COLOR_MAKE(255,255,255), LV_OPA_50);
 	//lv_label_set_style(odometryInfo, &textSty[0]);
 
@@ -93,7 +95,7 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void autonomous() {
+void autonomous() {//is hard coded, change depending on allies
 	//odom.loadPath("/usd/points.dat", "/usd/distances.dat");
 	//odom.followPath();
 	if (rightSide) {
@@ -124,20 +126,21 @@ void autonomous() {
  * task, not resume it from where it left off.
  */
 void opcontrol() {
-	unsigned int startTime = millis();
+	unsigned int startTime = millis();//used mainly for endgame to make sure people do not fat finger endgame
 	unsigned int xChangeTime;
 	bool xChange = false;
 	bool cPass = false;
 	while (true) {
-		dt.teleMove();
+		dt.teleMove();//a function that links back to toggle mode, where telemove has been change to arcade and tank drive.
 
 		if (master.get_digital(E_CONTROLLER_DIGITAL_R1)) {troll.move(127);}
 		else if (master.get_digital(E_CONTROLLER_DIGITAL_R2)) {troll.move(-127);}
 		else {troll.move(0);}
 
-		if(millis()-startTime >= 90000){
-			if (master.get_digital(E_CONTROLLER_DIGITAL_A)) {xtend.set(true); xChange=true; xChangeTime=millis();}
-			if (xChange && millis()-xChangeTime >= 500) {xtend.set(false); xChange=false;}
+		if(millis()-startTime >= 90000){//checks to see if the 90 seconds has happened if it is true, the driver can launch end game
+			if (master.get_digital(E_CONTROLLER_DIGITAL_A)) {xtend.set(true); xChange=true; xChangeTime=millis();}//tells that program that the end game has been launched
+			//since it keeps on going trough the while loop, it keeps on checking how much time has passed since the end game has been launch
+			if (xChange && millis()-xChangeTime >= 500) {xtend.set(false); xChange=false;}//once 1 and a half seconds have passed, set endgame back to normal and change state back to false
 		}
 
 		cPass = !master.get_digital(E_CONTROLLER_DIGITAL_B);

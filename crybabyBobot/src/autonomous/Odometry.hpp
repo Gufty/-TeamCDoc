@@ -35,17 +35,18 @@ class Odometry {
 		double heading = pi/2;
 		double leftEncoder, rightEncoder;
 
-		void odomTick(){
+		void odomTick(){//real stuff
 			while(true) {
-			newLeft = (dt->fl_mtr.get_position() + dt->bl_mtr.get_position()) / 2 * inchesPerTick;
-			newRight = (dt->fr_mtr.get_position() + dt->br_mtr.get_position()) / 2 * inchesPerTick;
+			newLeft = (dt->fl_mtr.get_position() + dt->bl_mtr.get_position()) / 2 * inchesPerTick;//avrg amount of left motors of front and back motor.
+			newRight = (dt->fr_mtr.get_position() + dt->br_mtr.get_position()) / 2 * inchesPerTick;//avrg amount of right motors of front and back motor.
 			
+			//change in how much it moved
 			dLeft = newLeft - leftEncoder;
 			dRight = newRight - rightEncoder;
 
-			phi = (dRight-dLeft)/trackwidth;
+			phi = (dRight-dLeft)/trackwidth;//change in angle
 
-			if (phi == 0) {
+			if (phi == 0) {//get the values from pos and set them, if not do cool math and get the actual position values
 				pos.x += dLeft*cos(heading);
 				pos.y += dLeft*sin(heading);
 			} else {
@@ -57,11 +58,11 @@ class Odometry {
 				pos.x += (rCenter)*(-hSin + pSin*hCos + hSin*pCos);
 				pos.y += (rCenter)*(hCos - pCos*hCos + hSin*pSin);
 			}
-			heading+=phi;
+			heading+=phi;//where you are globally
 
-			heading = headingRestrict(heading);
+			heading = headingRestrict(heading);//if it is greater than 2pi, set it back to 0 be subtractin 2pi
 
-			vel = p.findRobotVelocities(pos, heading);
+			vel = p.findRobotVelocities(pos, heading);// your velocity will depend on where you are and where you are looking at.
 
 			//std::cout << pos.x << " " << pos.y << " " << heading*radToDeg << " " << phi*radToDeg << std::endl;
 
@@ -102,7 +103,7 @@ class Odometry {
 */
 			p = Path(points, n);
 		}
-		void followPath() {
+		void followPath() {//check if the current posotion is wihtin the range of the last points and the path, if they are good, if not...gg
 			while (pos.x != p.nPoints[p.n-1].x && pos.y != p.nPoints[p.n-1].y) {
 				dt->left_g.move_velocity(vel[0]);
 				dt->right_g.move_velocity(vel[1]);

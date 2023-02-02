@@ -7,7 +7,7 @@
 using namespace Constants;
 using namespace pros;
 
-class Extender {
+class Extender {//set the value of pneumatic system
     private:
         ADIDigitalOut xtend1 = ADIDigitalOut(xtendL_p, false);
         ADIDigitalOut xtend2 = ADIDigitalOut(xtendR_p, false);
